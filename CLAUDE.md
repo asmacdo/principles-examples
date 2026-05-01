@@ -4,7 +4,7 @@ Companion website to the STAMPED paper with runnable examples demonstrating
 Self-containment, Tracking, Actionability, Modularity, Portability,
 Ephemerality, and Distributability for dataset version control.
 
-- **Live site:** https://stamped-principles.github.io/stamped-examples/
+- **Live site:** https://examples.stamped-principles.org/
 - **Repo:** https://github.com/stamped-principles/stamped-examples
 - **License:** Apache 2.0
 

@@ -4,7 +4,7 @@ A companion website to the STAMPED paper, providing concrete examples of
 Self-containment, Tracking, Actionability, Modularity, Portability,
 Ephemerality, and Distributability for dataset version control.
 
-**Live site:** <https://stamped-principles.github.io/stamped-examples/>
+**Live site:** <https://examples.stamped-principles.org/>
 
 **Build locally:** `hugo server` (requires [Hugo extended](https://gohugo.io/installation/))
 
