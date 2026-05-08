@@ -40,7 +40,7 @@ the data, the dataset is not actionable -- it is passive.
 SQLite database file and serves it as an interactive web application.
 With a single command, it provides:
 
-- A **browseable web UI** for every table, with sorting, filtering, and
+- A **browsable web UI** for every table, with sorting, filtering, and
   full-text search.
 - A **SQL query interface** where users can write and share arbitrary
   queries.
