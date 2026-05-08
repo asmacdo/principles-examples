@@ -4,6 +4,9 @@
 theme = "congo"
 baseURL = "https://examples.stamped-principles.org/"
 defaultContentLanguage = "en"
+# So we have clear ACRONYMs like MVC and casing like DataLad while keeping original
+# names like git-annex lower cased in tags
+titleCaseStyle = "none"
 
 enableRobotsTXT = true
 summaryLength = 0

@@ -1,9 +1,9 @@
 ---
-title: "Recording Computational Provenance with datalad run"
+title: "Recording Computational Provenance with 'datalad run'"
 date: 2026-02-19
-description: "Using datalad run to automatically capture full computational provenance of data transformations"
-summary: "Shows how datalad run wraps arbitrary commands to record inputs, outputs, and the exact command in machine-reexecutable form."
-tags: ["datalad", "provenance", "reproducibility"]
+description: "Using 'datalad run' to automatically capture full computational provenance of data transformations"
+summary: "Shows how 'datalad run' wraps arbitrary commands to record inputs, outputs, and the exact command in machine-reexecutable form."
+tags: ["DataLad", "provenance", "reproducibility"]
 stamped_principles: ["T", "A"]
 fair_principles: ["R"]
 instrumentation_levels: ["tool"]

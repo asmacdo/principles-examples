@@ -3,7 +3,7 @@ title: "From Script to STAMPED Research Object"
 date: 2026-02-20
 description: "Progressive evolution of a simple data analysis from throwaway script to fully STAMPED research object"
 summary: "Four scenarios showing how to incrementally add STAMPED properties to a shell-based analysis using git, make, and singularity."
-tags: ["shell", "posix", "awk", "make", "git", "singularity", "containers"]
+tags: ["shell", "POSIX", "awk", "make", "git", "singularity", "containers"]
 stamped_principles: ["S", "T", "A", "M", "P", "E", "D"]
 fair_principles: ["R", "A"]
 instrumentation_levels: ["pattern"]
