@@ -12,7 +12,7 @@ title = "STAMPED Principles Examples"
   description = "Concrete, pragmatic examples demonstrating the STAMPED principles for idiomatic dataset version control."
 
 [params.author]
-  name = "YODA Project"
+  name = "STAMPED Principles Project"
   headline = "STAMPED Principles Examples"
   bio = "A companion resource to the STAMPED paper — concrete examples of Self-containment, Tracking, Actionability, Modularity, Portability, Ephemerality, and Distributability for dataset version control."
   links = [

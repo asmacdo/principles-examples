@@ -1,9 +1,9 @@
 ---
-title: "Re-executing Computations with datalad rerun"
+title: "Re-executing Computations with 'datalad rerun'"
 date: 2026-02-19
 description: "Using datalad rerun to re-execute previously recorded computations for verification or updating"
-summary: "Demonstrates how datalad rerun enables re-execution of previously recorded datalad run commands, turning provenance records into actionable recipes."
-tags: ["datalad", "reproducibility", "re-execution"]
+summary: "Demonstrates how datalad rerun enables re-execution of previously recorded 'datalad run' commands, turning provenance records into actionable recipes."
+tags: ["DataLad", "reproducibility", "re-execution"]
 stamped_principles: ["A", "E"]
 fair_principles: ["R"]
 instrumentation_levels: ["tool"]

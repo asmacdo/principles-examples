@@ -3,7 +3,7 @@ title: "Datasette and MVC Pattern for Actionable Data Exploration"
 date: 2026-02-19
 description: "Using datasette and the MVC pattern to make datasets directly explorable and queryable"
 summary: "Shows how datasette turns static datasets into interactive, queryable web applications following an MVC-like pattern."
-tags: ["datasette", "mvc", "data-exploration", "sqlite"]
+tags: ["datasette", "MVC", "data-exploration", "sqlite"]
 stamped_principles: ["A", "S"]
 fair_principles: ["A", "I"]
 instrumentation_levels: ["pattern"]
@@ -40,7 +40,7 @@ the data, the dataset is not actionable -- it is passive.
 SQLite database file and serves it as an interactive web application.
 With a single command, it provides:
 
-- A **browseable web UI** for every table, with sorting, filtering, and
+- A **browsable web UI** for every table, with sorting, filtering, and
   full-text search.
 - A **SQL query interface** where users can write and share arbitrary
   queries.

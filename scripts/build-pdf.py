@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""build-pdf.py -- Scaffold for exporting YODA examples to PDF via pandoc.
+"""build-pdf.py -- Scaffold for exporting STAMPED examples to PDF via pandoc.
 
 Walks content/examples/, parses YAML front matter from each Markdown file,
 groups examples by STAMPED principle, concatenates them into ordered Markdown,
@@ -124,7 +124,7 @@ def build_combined_markdown(groups: dict[str, list[tuple[dict, str, Path]]]) -> 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Build a combined Markdown file from YODA examples, "
+        description="Build a combined Markdown file from STAMPED examples, "
         "grouped by STAMPED principle, ready for pandoc PDF export.",
     )
     parser.add_argument(

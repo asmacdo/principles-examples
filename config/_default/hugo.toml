@@ -2,8 +2,11 @@
 # https://jpanther.github.io/congo/docs/getting-started/
 
 theme = "congo"
-baseURL = "https://stamped-principles.github.io/stamped-examples/"
+baseURL = "https://examples.stamped-principles.org/"
 defaultContentLanguage = "en"
+# So we have clear ACRONYMs like MVC and casing like DataLad while keeping original
+# names like git-annex lower cased in tags
+titleCaseStyle = "none"
 
 enableRobotsTXT = true
 summaryLength = 0

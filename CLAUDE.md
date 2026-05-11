@@ -4,7 +4,7 @@ Companion website to the STAMPED paper with runnable examples demonstrating
 Self-containment, Tracking, Actionability, Modularity, Portability,
 Ephemerality, and Distributability for dataset version control.
 
-- **Live site:** https://stamped-principles.github.io/stamped-examples/
+- **Live site:** https://examples.stamped-principles.org/
 - **Repo:** https://github.com/stamped-principles/stamped-examples
 - **License:** Apache 2.0
 
@@ -101,3 +101,15 @@ CI runs this on push to main with `--strict --push`.
 - Four custom taxonomies: `stamped_principles`, `fair_principles`, `instrumentation_levels`, `aspirations`
 - State banners for `wip` / `uncurated-ai` content
 - Code block renderers distinguish scripts (full shebang) from snippets
+
+## Commit co-authorship
+
+Every commit you author MUST include a `Co-Authored-By` trailer identifying both your tool name + version and your underlying model + version. Format:
+
+```
+Co-Authored-By: <Tool> <tool-version> / <Model> <model-version> <noreply@<vendor-domain>>
+```
+
+Use the actual versions reported by your tool. Don't guess.
+
+(Convention adopted from https://github.com/con/catenate `conboarding.md` § Commit Co-Authorship.)
