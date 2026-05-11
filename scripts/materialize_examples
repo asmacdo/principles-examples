@@ -198,23 +198,51 @@ def rewrite_submodule_urls(
 # Local branch creation
 # ---------------------------------------------------------------------------
 
-def _resolve_steps(repo_dir: Path) -> dict[str, str]:
-    """Return a ``{"step-1": sha, "step-2": sha, ...}`` mapping.
+def _resolve_steps(
+    repo_dir: Path,
+    declared_steps: list[str] | None,
+) -> dict[str, str]:
+    """Map declared step subjects to commit SHAs.
 
-    Each commit in the repo's history (oldest first) becomes a step.
+    *declared_steps* is the ordered list of commit-subject substrings from
+    the walkthrough's front matter (``params.steps``).  Each entry is
+    matched against the next-following commit (oldest-first) whose subject
+    contains it.  Out-of-order or unmatched entries raise.
+
+    Returns ``{}`` when no steps are declared — the data file is only
+    used by examples that opt in via the step-link shortcode.
     """
+    if not declared_steps:
+        return {}
+
     result = subprocess.run(
-        ["git", "-C", str(repo_dir), "log", "--reverse", "--format=%H"],
+        ["git", "-C", str(repo_dir), "log", "--reverse", "--format=%H %s"],
         capture_output=True,
         text=True,
         check=True,
     )
-    steps = {}
-    for i, sha in enumerate(result.stdout.splitlines(), 1):
-        sha = sha.strip()
-        if sha:
-            steps[f"step-{i}"] = sha
-    return steps
+    commits = [
+        line.split(" ", 1)
+        for line in result.stdout.splitlines()
+        if line.strip()
+    ]
+
+    mapping: dict[str, str] = {}
+    cursor = 0
+    for i, needle in enumerate(declared_steps, 1):
+        found = next(
+            (j for j in range(cursor, len(commits)) if needle in commits[j][1]),
+            None,
+        )
+        if found is None:
+            remaining = [c[1] for c in commits[cursor:]]
+            raise RuntimeError(
+                f"step-{i}: no commit subject contains {needle!r}.  "
+                f"Remaining commit subjects: {remaining}"
+            )
+        mapping[f"step-{i}"] = commits[found][0]
+        cursor = found + 1
+    return mapping
 
 
 def import_as_local_branch(repo_dir: Path, target_branch: str) -> None:
@@ -361,6 +389,7 @@ def process_block(
     dry_run: bool,
     strict: bool,
     worktrees_under: Path | None,
+    declared_steps: list[str] | None,
 ) -> None:
     """Process a single script block: execute, capture, import as branch."""
     testrun_id = str(block.pragmas.get("testrun", "unnamed"))
@@ -415,8 +444,8 @@ def process_block(
                     repo_dir, block.file_stem, testrun_id, remote_url,
                 )
 
-            # Map commits (by position) to step names.
-            step_shas = _resolve_steps(repo_dir)
+            # Map declared step subjects to commit SHAs.
+            step_shas = _resolve_steps(repo_dir, declared_steps)
 
             if dry_run:
                 print(f"  dry-run: would create branch {bname}")
@@ -490,6 +519,14 @@ def main(argv: list[str] | None = None) -> None:
         return
 
     for md_path in md_files:
+        # Sidecar JSON file (e.g. foo.md → foo.steps.json) declares the
+        # ordered commit-subject substrings used by the step-link shortcode.
+        steps_path = md_path.with_suffix(".steps.json")
+        declared_steps = (
+            json.loads(steps_path.read_text(encoding="utf-8"))
+            if steps_path.exists()
+            else None
+        )
         for block in iter_script_blocks(md_path):
             materialize_list = block.pragmas.get("materialize", [])
             if not materialize_list:
@@ -500,6 +537,7 @@ def main(argv: list[str] | None = None) -> None:
                 dry_run=args.dry_run,
                 strict=args.strict,
                 worktrees_under=args.worktrees_under,
+                declared_steps=declared_steps,
             )
 
     if args.push and not args.dry_run:
