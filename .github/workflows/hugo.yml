@@ -1,7 +1,11 @@
 name: Deploy Hugo site to GitHub Pages
 
+# Run after Test succeeds on main so the step-map notes pushed by
+# materialize_examples --strict --push are available for the deploy.
 on:
-  push:
+  workflow_run:
+    workflows: ["Test"]
+    types: [completed]
     branches: ["main"]
   workflow_dispatch:
 
@@ -21,6 +25,8 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Only deploy on successful Test runs (or manual dispatch).
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     env:
       HUGO_VERSION: "0.153.0"
     steps:
@@ -37,6 +43,14 @@ jobs:
 
       - name: Fetch theme submodule
         run: git submodule update --init themes/congo
+
+      - name: Fetch materialized example branches and step-map notes
+        run: |
+          git fetch origin 'refs/heads/examples/*:refs/heads/examples/*' || true
+          git fetch origin 'refs/notes/materialize-step-map:refs/notes/materialize-step-map' || true
+
+      - name: Export step maps to data/ for Hugo
+        run: python3 scripts/materialize_examples --export-data-from-notes
 
       - name: Setup Pages
         id: pages
