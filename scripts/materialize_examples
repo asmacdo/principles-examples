@@ -44,6 +44,11 @@ DATA_DIR = Path("data")
 # Custom notes ref to avoid colliding with default refs/notes/commits.
 NOTES_REF = "refs/notes/materialize"
 
+# Notes ref carrying the per-branch step→sha JSON map consumed by the
+# step-link Hugo shortcode.  Sibling to NOTES_REF so we can extend the
+# materialization cache without re-running the build script at deploy time.
+STEP_MAP_NOTES_REF = "refs/notes/materialize-step-map"
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -135,6 +140,31 @@ def store_hash_note(target_branch: str, hash_val: str) -> None:
         [
             "git", "notes", f"--ref={NOTES_REF}",
             "add", "-f", "-m", f"Script-Hash: {hash_val}",
+            commit,
+        ],
+        check=True,
+    )
+
+
+def store_step_map_note(target_branch: str, step_shas: dict[str, str]) -> None:
+    """Attach the resolved step-map JSON as a note on *target_branch*'s tip.
+
+    Deploy workflows fetch ``STEP_MAP_NOTES_REF`` and use the
+    ``--export-data-from-notes`` mode to materialize ``data/<stem>.json``
+    without re-running the build script.
+    """
+    tip = subprocess.run(
+        ["git", "rev-parse", f"refs/heads/{target_branch}"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    commit = tip.stdout.strip()
+    payload = json.dumps(step_shas, indent=2, sort_keys=True) + "\n"
+    subprocess.run(
+        [
+            "git", "notes", f"--ref={STEP_MAP_NOTES_REF}",
+            "add", "-f", "-m", payload,
             commit,
         ],
         check=True,
@@ -278,6 +308,51 @@ def create_worktree(
 # Push
 # ---------------------------------------------------------------------------
 
+def export_data_from_notes() -> None:
+    """Write ``data/<stem>.json`` for every example branch with a step-map note.
+
+    Used by deploy workflows: after fetching the example branches and the
+    ``STEP_MAP_NOTES_REF`` notes ref from origin, this command extracts
+    the cached step maps into ``data/`` for Hugo to consume — no script
+    re-execution, no external dependencies.
+    """
+    result = subprocess.run(
+        ["git", "branch", "--list", "examples/*", "--format=%(refname:short)"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    branches = [b.strip() for b in result.stdout.splitlines() if b.strip()]
+    if not branches:
+        print("No example branches found.")
+        return
+
+    DATA_DIR.mkdir(exist_ok=True)
+    wrote_any = False
+    for branch in branches:
+        # examples/<stem>/<testrun>/<repo>
+        parts = branch.split("/")
+        if len(parts) < 4:
+            continue
+        stem = parts[1]
+        tip = subprocess.run(
+            ["git", "rev-parse", branch],
+            capture_output=True, text=True, check=True,
+        ).stdout.strip()
+        note = subprocess.run(
+            ["git", "notes", f"--ref={STEP_MAP_NOTES_REF}", "show", tip],
+            capture_output=True, text=True,
+        )
+        if note.returncode != 0:
+            continue
+        data_file = DATA_DIR / f"{stem}.json"
+        data_file.write_text(note.stdout)
+        print(f"  {branch} → {data_file}")
+        wrote_any = True
+    if not wrote_any:
+        print("No step-map notes found on local example branches.")
+
+
 def push_branches_and_notes(remote: str) -> None:
     """Push all ``examples/*`` branches and materialize notes to *remote*."""
     # Gather local example branches
@@ -293,8 +368,9 @@ def push_branches_and_notes(remote: str) -> None:
 
     # Build refspecs
     refspecs = [f"refs/heads/{b}:refs/heads/{b}" for b in branches]
-    # Also push notes
+    # Also push notes (script-hash cache + step-map for deploys)
     refspecs.append(f"{NOTES_REF}:{NOTES_REF}")
+    refspecs.append(f"{STEP_MAP_NOTES_REF}:{STEP_MAP_NOTES_REF}")
 
     print(f"Pushing {len(branches)} branch(es) + notes to {remote}…")
     subprocess.run(
@@ -414,6 +490,10 @@ def process_block(
                 break
         if all_cached:
             print(f"  cache hit (hash {hash_val[:12]}…) — skipping")
+            # Known wart: this path does not refresh the step-map note or
+            # data/<stem>.json.  If declared_steps changes without the
+            # script changing, the cached note can go stale.  To force a
+            # rebuild: `git notes --ref=materialize remove <branch-tip>`.
             return
 
     print(f"  hash {hash_val[:12]}… — executing script")
@@ -457,14 +537,17 @@ def process_block(
                 import_as_local_branch(repo_dir, bname)
                 store_hash_note(bname, hash_val)
 
-            # Write step→SHA mapping as a Hugo data file.
-            if step_shas and not dry_run:
+            # Write step→SHA mapping as a Hugo data file, and persist it
+            # as a git note so deploy workflows can recover it without
+            # re-running the build script.
+            if step_shas and not dry_run and not worktrees_under:
                 DATA_DIR.mkdir(exist_ok=True)
                 data_file = DATA_DIR / f"{block.file_stem}.json"
                 data_file.write_text(
                     json.dumps(step_shas, indent=2, sort_keys=True) + "\n",
                 )
                 print(f"  data → {data_file}")
+                store_step_map_note(bname, step_shas)
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
@@ -501,7 +584,20 @@ def main(argv: list[str] | None = None) -> None:
         metavar="PATH",
         help="Create directory copies instead of local branches.",
     )
+    parser.add_argument(
+        "--export-data-from-notes",
+        action="store_true",
+        help=(
+            "Skip script execution.  Read step-map notes from local "
+            "example branches and write data/<stem>.json files (for "
+            "Hugo deploys)."
+        ),
+    )
     args = parser.parse_args(argv)
+
+    if args.export_data_from_notes:
+        export_data_from_notes()
+        return
 
     if not CONTENT_DIR.is_dir():
         print(f"ERROR: {CONTENT_DIR} not found", file=sys.stderr)
