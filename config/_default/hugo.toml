@@ -11,6 +11,10 @@ titleCaseStyle = "none"
 enableRobotsTXT = true
 summaryLength = 0
 
+# Author-side metadata files in content/ (e.g. .steps.json sidecars consumed
+# by scripts/materialize_examples) — not user-facing, do not publish.
+ignoreFiles = ['\.steps\.json$']
+
 [pagination]
   pagerSize = 20
 
